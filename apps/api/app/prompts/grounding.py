@@ -9,6 +9,11 @@ ABSTENTION_TEXT = (
     "confirm it with you."
 )
 
+# Fallback call-to-action appended to a factual answer when the model didn't
+# already end with one of its own (see rule 6). Guarantees every product answer
+# closes with a CTA. Edit freely.
+DEFAULT_CTA = "Would you like me to walk you through the next steps to get started?"
+
 # Hardcoded spoken opener, said verbatim at the start of every call (no LLM,
 # no retrieval). Edit freely. Optional "{policy}" placeholder is replaced at
 # runtime with the active policy name (or "this policy"); omit it for a fixed
@@ -53,12 +58,13 @@ How to respond:
    detail.
 5. Stay in character as a sales agent throughout: warm, helpful, never pushy,
    and always ready to steer back toward the product when natural.
-6. End every product answer with ONE short, natural call-to-action — for
-   example, offer to explain another benefit, help them choose a Sum Insured,
-   walk through the next steps, or connect them with a human advisor to get
-   started. One sentence, genuinely helpful, never pushy. (Do NOT add a CTA when
-   you are giving the exact abstention line in 2b — that case is handled
-   separately.)
+6. ALWAYS end a product answer with ONE short, natural call-to-action phrased
+   as a question, so it reads as a clear next step — for example, offer to
+   explain another benefit, help them choose a Sum Insured, walk through the
+   next steps, or connect them with a human advisor to get started. One
+   sentence, genuinely helpful, never pushy. This is required on every factual
+   answer; never end on a bare fact. (Do NOT add a CTA when you are giving the
+   exact abstention line in 2b — that case is handled separately.)
 """.format(abstention=ABSTENTION_TEXT)
 
 

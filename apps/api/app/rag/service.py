@@ -5,6 +5,7 @@ from collections.abc import AsyncIterator
 
 from app.prompts.grounding import (
     ABSTENTION_TEXT,
+    DEFAULT_CTA,
     OPENING_GREETING,
     SYSTEM_INSTRUCTIONS,
     build_grounded_prompt,
@@ -107,6 +108,11 @@ class GroundedInsuranceService:
             )
             for marker in marker_ids
         )
+        # Rule 6: every factual answer must close with a CTA. The model usually
+        # supplies one; if it ended on a bare fact (no trailing question), append
+        # the default so the requirement holds deterministically.
+        if not generated.rstrip().endswith("?"):
+            generated = f"{generated} {DEFAULT_CTA}"
         return GroundedAnswer(text=generated, citations=citations, abstained=False)
 
     async def pitch(self, *, policy_name: str | None = None) -> GroundedAnswer:
