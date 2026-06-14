@@ -51,7 +51,7 @@ const STATE_COPY: Record<VoiceState, { title: string; detail: string }> = {
   },
   SPEAKING: {
     title: "Your advisor is speaking",
-    detail: "You can interrupt at any moment",
+    detail: "Please wait for them to finish, then it's your turn",
   },
   AWAITING_CALLBACK_CONFIRMATION: {
     title: "One final choice",
