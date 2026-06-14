@@ -217,6 +217,20 @@ async def _grounded_response_stream(
         query = transcript
 
     answer = await rag_service.answer(query, document_id=document_id)
+
+    # No grounded answer in the document -> don't leave it there. Immediately
+    # pivot into the human-advisor callback offer; the customer's next reply is
+    # interpreted by the _awaiting_callback handler above (yes -> records it).
+    if answer.abstained:
+        _awaiting_callback.add(context.session_id)
+        yield ResponseDelta(
+            text=(
+                answer.text + " Would you like me to have one of our human "
+                "advisors call you back to help you with that?"
+            )
+        )
+        return
+
     citations = tuple(
         {
             "id": str(citation.id),
