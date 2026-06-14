@@ -1,0 +1,16 @@
+{
+  "name": "insurance-voice-agent",
+  "private": true,
+  "version": "0.1.0",
+  "workspaces": [
+    "apps/web",
+    "packages/contracts"
+  ],
+  "scripts": {
+    "dev:web": "npm --workspace @insurance/web run dev",
+    "build:web": "npm --workspace @insurance/web run build",
+    "test:web": "npm --workspace @insurance/web run test",
+    "test:api": "cd apps/api && python -m pytest",
+    "test": "npm run test:web && npm run test:api"
+  }
+}
