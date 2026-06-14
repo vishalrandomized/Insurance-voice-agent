@@ -2,11 +2,15 @@
   "$schema": "https://railway.com/railway.schema.json",
   "build": {
     "builder": "DOCKERFILE",
-    "watchPatterns": ["apps/api/**"]
+    "dockerfilePath": "apps/web/Dockerfile",
+    "watchPatterns": [
+      "apps/web/**",
+      "packages/contracts/**",
+      "package.json",
+      "package-lock.json"
+    ]
   },
   "deploy": {
-    "healthcheckPath": "/health",
-    "healthcheckTimeout": 30,
     "restartPolicyType": "ON_FAILURE",
     "restartPolicyMaxRetries": 5
   }

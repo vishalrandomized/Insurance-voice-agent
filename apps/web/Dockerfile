@@ -2,9 +2,10 @@
 #
 # Railway settings for THIS service:
 #   - Root Directory: the REPO ROOT (leave blank / "/")
-#   - Variable: RAILWAY_DOCKERFILE_PATH = apps/web/Dockerfile
-# so the build context is the repo root and the @insurance/contracts workspace
-# is available to the build.
+# The repo-root railway.json sets builder=DOCKERFILE + dockerfilePath to this
+# file (and the web watch patterns), so the build context is the repo root and
+# the @insurance/contracts workspace is available. No env var needed for the
+# Dockerfile path.
 FROM node:20-slim AS build
 WORKDIR /repo
 
