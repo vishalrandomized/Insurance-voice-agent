@@ -5,21 +5,27 @@ from dotenv import load_dotenv
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
 
-REPO_ROOT = Path(__file__).resolve().parents[3]
+# config.py lives at <api>/app/config.py. Locally <api> = apps/api, so the repo
+# root is parents[3]; but in the Docker image apps/api is copied to /app, so the
+# file is /app/app/config.py and parents[3] would IndexError. Resolve both
+# layouts defensively. These paths only locate optional .env files for local
+# dev — in the container, env vars are injected by the platform (no .env).
+_PARENTS = Path(__file__).resolve().parents
+_API_DIR = _PARENTS[1]  # apps/api (local) or /app (container)
+REPO_ROOT = _PARENTS[3] if len(_PARENTS) > 3 else _API_DIR
 
 # Provider factories (LLM/TTS/STT/embeddings) read their API keys via
 # os.getenv at request time. pydantic-settings only loads .env into Settings,
-# not into the process environment, so without this the keys are invisible to
-# those factories and they silently fall back to the demo/local providers
-# (e.g. demo TTS emits 440 Hz beeps instead of speech). Populate os.environ
-# from .env at import so every os.getenv lookup sees the real keys.
-load_dotenv(REPO_ROOT / ".env")
-load_dotenv(REPO_ROOT / "apps" / "api" / ".env")
+# not into the process environment, so populate os.environ from any local .env
+# at import. load_dotenv on a missing path is a harmless no-op.
+_ENV_FILES = (REPO_ROOT / ".env", _API_DIR / ".env")
+for _env_file in _ENV_FILES:
+    load_dotenv(_env_file)
 
 
 class Settings(BaseSettings):
     model_config = SettingsConfigDict(
-        env_file=(REPO_ROOT / ".env", REPO_ROOT / "apps" / "api" / ".env"),
+        env_file=_ENV_FILES,
         extra="ignore",
     )
 
