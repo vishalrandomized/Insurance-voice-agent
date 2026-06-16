@@ -92,6 +92,7 @@ async def _grounded_response_stream(
         active_policy_name,
         rag_service,
         resolve_active_document_id,
+        seed_document_if_empty,
     )
     from app.services.callbacks import CallbackService
     from app.voice import ResponseDelta
@@ -217,6 +218,14 @@ async def _grounded_response_stream(
             return
 
     document_id = await resolve_active_document_id()
+    if not document_id:
+        # The startup pre-warm may have failed (e.g. a transient embedding
+        # error left the agent ungrounded). Retry the bundled-seed ingest on
+        # demand so the container self-heals without waiting for a redeploy.
+        try:
+            document_id = await seed_document_if_empty()
+        except Exception:
+            document_id = None
     if not document_id:
         yield ResponseDelta(
             text=(
