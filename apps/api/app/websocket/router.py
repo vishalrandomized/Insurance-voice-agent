@@ -128,9 +128,26 @@ async def _grounded_response_stream(
         return True
 
     # The agent spoke the callback offer last turn — interpret this reply.
+    # Hybrid: an obvious keyword yes/no is decided instantly in code; anything
+    # fuzzy ("I guess that'd help", "why not") is handed to the LLM to judge
+    # intent. Either way the write below is owned by code, not the model.
     if context.session_id in _awaiting_callback:
         _awaiting_callback.discard(context.session_id)
+        decision: str | None = None
         if _affirmative_reply(transcript):
+            decision = "yes"
+        elif _negative_reply(transcript):
+            decision = "no"
+        else:
+            try:
+                intent = await rag_service.classify_callback_intent(transcript)
+            except Exception:
+                intent = "UNCLEAR"
+            if intent == "YES":
+                decision = "yes"
+            elif intent == "NO":
+                decision = "no"
+        if decision == "yes":
             try:
                 await _record_callback(
                     "Customer agreed on the call to a human-advisor callback"
@@ -145,7 +162,7 @@ async def _grounded_response_stream(
                 )
             )
             return
-        if _negative_reply(transcript):
+        if decision == "no":
             yield ResponseDelta(
                 text=(
                     "No problem at all. Thank you for taking the time today, and "
@@ -153,8 +170,8 @@ async def _grounded_response_stream(
                 )
             )
             return
-        # Ambiguous (e.g. a follow-up question) — drop the offer and answer it
-        # normally below.
+        # Genuinely unclear (e.g. a follow-up question) — drop the offer and
+        # answer it normally below.
 
     # End-of-call: SPEAK the callback offer (no pop-up). The customer's reply on
     # the next turn (handled above) is what actually records the callback.

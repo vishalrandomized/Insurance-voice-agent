@@ -14,6 +14,18 @@ ABSTENTION_TEXT = (
 # closes with a CTA. Edit freely.
 DEFAULT_CTA = "Would you like me to walk you through the next steps to get started?"
 
+# Intent classifier used ONLY when the customer's reply to the spoken callback
+# offer isn't an obvious keyword yes/no. The model judges intent; the router
+# still owns the actual callback write. Must return exactly one word.
+CALLBACK_INTENT_INSTRUCTIONS = """A customer is on a sales call. The agent just \
+asked whether they'd like a human advisor to call them back to help them. \
+Classify the customer's reply with exactly ONE word:
+YES - they accept or lean towards wanting the callback, even softly \
+(e.g. "I guess that could help", "why not", "go on then", "that'd be useful").
+NO - they decline or don't want it now (e.g. "I'm fine", "not now", "maybe later", "no thanks").
+UNCLEAR - it is neither: they ask a question, change the subject, or say something unrelated.
+Respond with ONLY the single word YES, NO, or UNCLEAR. No punctuation, no explanation."""
+
 # Hardcoded spoken opener, said verbatim at the start of every call (no LLM,
 # no retrieval). Edit freely. Optional "{policy}" placeholder is replaced at
 # runtime with the active policy name (or "this policy"); omit it for a fixed

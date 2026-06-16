@@ -5,6 +5,7 @@ from collections.abc import AsyncIterator
 
 from app.prompts.grounding import (
     ABSTENTION_TEXT,
+    CALLBACK_INTENT_INSTRUCTIONS,
     DEFAULT_CTA,
     OPENING_GREETING,
     SYSTEM_INSTRUCTIONS,
@@ -143,6 +144,24 @@ class GroundedInsuranceService:
         messages: list[ConversationMessage],
     ) -> str:
         return (await self.llm.summarize(messages)).strip()
+
+    async def classify_callback_intent(self, reply: str) -> str:
+        """Judge whether a customer reply accepts the spoken callback offer.
+        Returns "YES", "NO", or "UNCLEAR". Used by the router only for replies
+        that aren't an obvious keyword yes/no; the router still owns the write."""
+        reply = reply.strip()
+        if not reply:
+            return "UNCLEAR"
+        generated = (
+            await self.llm.generate(
+                instructions=CALLBACK_INTENT_INSTRUCTIONS,
+                prompt=f'Customer reply: "{reply}"',
+            )
+        ).upper()
+        # Reasoning models may wrap the verdict in chain-of-thought; take the
+        # last whole-word verdict and default to the safe non-action.
+        matches = re.findall(r"\b(YES|NO|UNCLEAR)\b", generated)
+        return matches[-1] if matches else "UNCLEAR"
 
     @staticmethod
     def _abstention() -> GroundedAnswer:
